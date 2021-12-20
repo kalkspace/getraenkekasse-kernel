@@ -1,0 +1,42 @@
+--- drivers/platform/x86/touchscreen_dmi.c	2021-12-15 16:05:35.985997410 +0000
++++ drivers/platform/x86/touchscreen_dmi.c	2021-12-19 14:31:26.810173211 +0000
+@@ -720,6 +720,21 @@
+ 	.properties	= predia_basic_props,
+ };
+
++static const struct property_entry saphir_media_winpad_10_props[] = {
++	PROPERTY_ENTRY_U32("touchscreen-size-x", 1970),
++	PROPERTY_ENTRY_U32("touchscreen-size-y", 1522),
++	PROPERTY_ENTRY_U32("touchscreen-min-x", 14),
++	PROPERTY_ENTRY_U32("touchscreen-min-y", 18),
++	PROPERTY_ENTRY_U32("silead,max-fingers", 10),
++	PROPERTY_ENTRY_STRING("firmware-name", "gsl1680-saphir-media-winpad-10.fw"),
++	{ }
++};
++
++static const struct ts_dmi_data saphir_media_winpad_10_data = {
++        .acpi_name      = "MSSL1680:00",
++        .properties     = saphir_media_winpad_10_props,
++};
++
+ static const struct property_entry schneider_sct101ctm_props[] = {
+ 	PROPERTY_ENTRY_U32("touchscreen-size-x", 1715),
+ 	PROPERTY_ENTRY_U32("touchscreen-size-y", 1140),
+@@ -1281,6 +1296,17 @@
+ 		},
+ 	},
+ 	{
++		/* Saphir Media Technologies WinPad 10.1 FHD */
++		.driver_data = (void *)&saphir_media_winpad_10_data,
++		.matches = {
++			DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
++			DMI_MATCH(DMI_BOARD_NAME, "Aptio CRB"),
++			DMI_MATCH(DMI_BIOS_VERSION, "3BAIR1015"),
++			/* Above matches are too generic, add bios-date match */
++			DMI_MATCH(DMI_BIOS_DATE, "10/21/2015"),
++		},
++	},
++	{
+ 		/* Schneider SCT101CTM */
+ 		.driver_data = (void *)&schneider_sct101ctm_data,
+ 		.matches = {

@@ -1,0 +1,37 @@
+name: Build Kernel image
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build
+        uses: addnab/docker-run-action@v3
+        with:
+          image: debian:bullseye
+          options: -v ${{ github.workspace }}:/work
+          run: |
+            set -e
+            apt-get update
+            apt-get install -y linux-source build-essential bc kmod cpio flex libncurses5-dev libelf-dev libssl-dev dwarves patch rsync python3
+            tar xaf /usr/src/linux-source-*.tar.xz
+            VERSION=$(ls -d linux-source-* | sed -e 's/linux-source-//g')
+            xzcat /usr/src/linux-config-$VERSION/config.amd64_none_amd64.xz > linux-source-$VERSION/.config
+            cd linux-source-$VERSION
+            cp /work/silead.c drivers/input/touchscreen
+            cat /work/dmi.patch | patch -p0
+            make -j$(nproc) deb-pkg LOCALVERSION=-kalkspace CONFIG_TOUCHSCREEN_DMI=y CONFIG_TOUCHSCREEN_SILEAD=m
+            cp -a ../*.deb /work
+            # waste of space
+            rm /work/linux*dbg*.deb
+      - uses: actions/upload-artifact@v2
+        with:
+          name: linux-image
+          path: "linux-image-*-kalkspace*.deb"
+          retention-days: 90
+      - uses: actions/upload-artifact@v2
+        with:
+          name: linux-headers
+          path: "linux-headers-*-kalkspace*.deb"
+          retention-days: 90
